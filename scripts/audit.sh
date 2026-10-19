@@ -3,9 +3,12 @@ set -uo pipefail
 PASS=0; FAIL=0
 REMOTE="devops"
 
-# Функция для выполнения команд на удалённом сервере
+# SSH-мультиплексирование: все вызовы ssh идут через одно TCP-соединение.
+# Это позволяет обойти лимит ufw limit (6 подключений за 30 секунд).
+SSH_OPTS="-o ControlMaster=auto -o ControlPath=~/.ssh/control-audit-%h-%p-%r -o ControlPersist=60s -o BatchMode=yes -o ConnectTimeout=5"
+
 run_remote() {
-    ssh "$REMOTE" "$1" 2>/dev/null
+    ssh $SSH_OPTS "$REMOTE" "$1" 2>/dev/null
 }
 
 check() {
